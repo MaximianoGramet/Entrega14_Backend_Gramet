@@ -2,6 +2,7 @@ import { MongoClient, ObjectId } from "mongodb";
 import bcrypt from "bcrypt";
 import config from "../../src/config/config.js";
 
+//profe si ves esto es un miniservidor temporal, debería de mover todo esto a utils en scr para usarlo acá
 const MONGO_URL = config.urlMongo;
 
 const client = new MongoClient(MONGO_URL, {
@@ -13,8 +14,8 @@ await client.connect();
 async function comparePasswordWithUserId(userId, password) {
   const db = client.db("test");
   const usersCollection = db.collection("users");
-
-  const user = await usersCollection.findOne({ _id: userId });
+  let newObjectID = new ObjectId(userId);
+  const user = await usersCollection.findOne({ _id: newObjectID });
 
   if (!user || !user.password) {
     throw new Error(

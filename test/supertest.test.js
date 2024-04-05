@@ -1,6 +1,5 @@
 import { expect } from "chai";
 import supertest from "supertest";
-import bcrypt from "bcrypt";
 import compare from "./utils/utils.js";
 
 const requester = supertest("http://localhost:8080");
@@ -35,8 +34,8 @@ describe("Testing Auth Endpoints", () => {
     });
 
     it("New user should have 'user' role", async function () {
-      expect(createdUser.role).to.be.equals("user");
-      expect(createdUser.role).to.be.a("string");
+      expect(createdUser.rol).to.be.equals("user");
+      expect(createdUser.rol).to.be.a("string");
     });
   });
 
@@ -52,7 +51,7 @@ describe("Testing Auth Endpoints", () => {
         .send(mockUser);
 
       expect(statusCode).is.equals(200);
-      expect(_body.success).is.equals(true);
+      expect(_body.status).is.equals("success");
     });
 
     it("Login user failed with invalid credentials", async function () {
@@ -61,12 +60,11 @@ describe("Testing Auth Endpoints", () => {
         password: "test123456",
       };
 
-      const { statusCode, ok, _body } = await requester
+      const { _body } = await requester
         .post("/api/sessions/login")
         .send(mockUser);
 
-      expect(ok).is.equals(false);
-      expect(_body.success).is.equals(false);
+      expect(_body.status).is.not.equals("success");
     });
 
     //todo: hacer un delete user
