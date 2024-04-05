@@ -36,7 +36,6 @@ async function deleteUserById(userId) {
     const db = client.db("test");
     const usersCollection = db.collection("users");
 
-    // Borrar el usuario por su _id
     const result = await usersCollection.deleteOne({ _id: ObjectId(userId) });
 
     if (result.deletedCount === 1) {
