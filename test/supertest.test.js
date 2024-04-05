@@ -1,10 +1,12 @@
 import { expect } from "chai";
 import supertest from "supertest";
-import compare from "./utils/utils.js";
+import config from "../src/config/config.js";
+import bcrypt from "bcrypt";
+
+const ADMIN_NAME = config.adminName;
+const ADMIN_PASSWORD = config.adminPassword;
 
 const requester = supertest("http://localhost:8080");
-
-//nota para el profe en caso de que vea esto, las cosas se hacen, pero los chequeos dan mal igual
 
 let createdUser;
 
@@ -22,15 +24,21 @@ describe("Testing Auth Endpoints", () => {
       const { statusCode, body } = await requester
         .post("/api/sessions/register")
         .send(mockUser);
+
       expect(statusCode).is.equals(200);
       expect(body.msg).is.equals("User created");
       expect(body.status).is.equals("success");
 
       createdUser = body.data;
     });
+
     it("The password should be stored encrypted", async function () {
-      const isMatch = await compare(createdUser._id, "test1234");
-      expect(isMatch).is.equals(true);
+      const response = await requester.get(
+        `/api/sessions/find-user/${createdUser._id}`
+      );
+      expect(response.body.password).to.not.equal("test1234");
+      const isMatch = await bcrypt.compare("test1234", response.body.password);
+      expect(isMatch).is.equal(true);
     });
 
     it("New user should have 'user' role", async function () {
@@ -46,12 +54,12 @@ describe("Testing Auth Endpoints", () => {
         password: "test1234",
       };
 
-      const { statusCode, _body } = await requester
+      const { statusCode, body } = await requester
         .post("/api/sessions/login")
         .send(mockUser);
 
       expect(statusCode).is.equals(200);
-      expect(_body.status).is.equals("success");
+      expect(body.status).is.equals("success");
     });
 
     it("Login user failed with invalid credentials", async function () {
@@ -60,13 +68,46 @@ describe("Testing Auth Endpoints", () => {
         password: "test123456",
       };
 
-      const { _body } = await requester
+      const { body } = await requester
         .post("/api/sessions/login")
         .send(mockUser);
 
-      expect(_body.status).is.not.equals("success");
+      expect(body.status).is.not.equals("success");
     });
 
-    //todo: hacer un delete user
+    describe("Delete user", () => {
+      it("Logout from user account", async function () {
+        const response = await requester.get("/api/sessions/logout");
+        expect(response.status).to.equal(200);
+      });
+
+      it("Login as admin", async function () {
+        const adminUser = {
+          email: ADMIN_NAME,
+          password: ADMIN_PASSWORD,
+        };
+
+        const { statusCode } = await requester
+          .post("/api/sessions/login")
+          .send(adminUser);
+
+        expect(statusCode).to.equal(200);
+      });
+
+      it("Delete user successfully", async function () {
+        const { statusCode, body } = await requester.delete(
+          `/api/sessions/delete-user/${createdUser._id}`
+        );
+
+        expect(statusCode).is.equals(200);
+        expect(body.status).is.equals("success");
+        expect(body.msg).is.equals("User deleted successfully");
+      });
+
+      it("Logout from admin account", async function () {
+        const response = await requester.get("/api/sessions/logout");
+        expect(response.status).to.equal(200);
+      });
+    });
   });
 });
