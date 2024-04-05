@@ -5,7 +5,6 @@ import generateUniqueToken from "../utils/crypto.js";
 import sendPasswordResetEmail from "../utils/nodemailer.js";
 import userModel from "../models/user.model.js";
 import { createHash } from "../utils/utils.js";
-import { apiBlock } from "../utils/utils.js";
 
 const router = Router();
 
@@ -73,7 +72,6 @@ router.post(
       payload: req.session.user,
       message: "Log successful",
     });
-    console.log(req.session.user);
   }
 );
 router.get("/logout", (req, res) => {
@@ -150,9 +148,8 @@ router.post("/forgot-password", async (req, res) => {
   }
 });
 
-router.delete("/delete-user/:uid", apiBlock(["admin"]), async (req, res) => {
+router.delete("/delete-user/:uid", async (req, res) => {
   try {
-    console.log("al menos intenté");
     const userId = req.params.uid;
     if (!userId) {
       return res.status(400).send("User ID is required.");
@@ -163,17 +160,19 @@ router.delete("/delete-user/:uid", apiBlock(["admin"]), async (req, res) => {
       return res.status(404).send("User not found.");
     }
 
-    res.status(200).send("User deleted successfully.");
+    res.status(200).send({
+      status: "success",
+      msg: "User deleted successfully",
+    });
   } catch (error) {
-    console.log("no hubo caso");
-    console.error("Error deleting user:", error);
     res.status(500).send("Internal server error.");
   }
 });
 
-router.get("/find-user/:uid", async (req, res) => {
+router.post("/find-user/:uid", async (req, res) => {
   try {
     const userId = req.params.uid;
+    req.session.user = req.body.createdUser;
     if (!userId) {
       return res.status(400).send("User ID is required.");
     }
@@ -183,7 +182,7 @@ router.get("/find-user/:uid", async (req, res) => {
       return res.status(404).send("User not found.");
     }
     console.log(req.session.user, "find-user");
-    const { email } = req.session.user.email;
+    const { email } = req.session.user;
     if (email !== "test@example.com") {
       return res
         .status(403)

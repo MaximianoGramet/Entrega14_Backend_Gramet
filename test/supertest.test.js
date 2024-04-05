@@ -33,9 +33,9 @@ describe("Testing Auth Endpoints", () => {
     });
 
     it("The password should be stored encrypted", async function () {
-      const response = await requester.get(
-        `/api/sessions/find-user/${createdUser._id}`
-      );
+      const response = await requester
+        .post(`/api/sessions/find-user/${createdUser._id}`)
+        .send({ createdUser });
       expect(response.body.password).to.not.equal("test1234");
       const isMatch = await bcrypt.compare("test1234", response.body.password);
       expect(isMatch).is.equal(true);
@@ -57,7 +57,6 @@ describe("Testing Auth Endpoints", () => {
       const { statusCode, body } = await requester
         .post("/api/sessions/login")
         .send(mockUser);
-
       expect(statusCode).is.equals(200);
       expect(body.status).is.equals("success");
     });
@@ -87,10 +86,9 @@ describe("Testing Auth Endpoints", () => {
           password: ADMIN_PASSWORD,
         };
 
-        const { statusCode } = await requester
+        const { statusCode, body } = await requester
           .post("/api/sessions/login")
           .send(adminUser);
-
         expect(statusCode).to.equal(200);
       });
 

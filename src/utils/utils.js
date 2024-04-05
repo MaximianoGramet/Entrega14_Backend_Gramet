@@ -12,6 +12,7 @@ export const isValidPas = (user, password) => {
   return bcrypt.compareSync(password, user.password);
 };
 export { __dirname };
+
 export const userApiBlock = () => {
   return async (req, res, next) => {
     try {
@@ -37,7 +38,7 @@ export const apiBlock = (allowedRoles) => {
   return async (req, res, next) => {
     try {
       console.log(req.session.user, "apiblock");
-      const { rol } = req.session.user.rol;
+      const { rol } = req.session.user; // Accessing 'rol' directly from 'req.session.user'
       console.log("intenté dejarte pasar", rol, "allowed:", allowedRoles);
       if (!rol) {
         console.log("no hubo rol", allowedRoles);
@@ -56,7 +57,6 @@ export const apiBlock = (allowedRoles) => {
     }
   };
 };
-
 export const adminApiBlock = () => {
   return async (req, res, next) => {
     try {
