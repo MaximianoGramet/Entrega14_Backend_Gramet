@@ -38,7 +38,7 @@ export const apiBlock = (allowedRoles) => {
   return async (req, res, next) => {
     try {
       console.log(req.session.user, "apiblock");
-      const { rol } = req.session.user; // Accessing 'rol' directly from 'req.session.user'
+      const { rol } = req.session.user;
       console.log("intenté dejarte pasar", rol, "allowed:", allowedRoles);
       if (!rol) {
         console.log("no hubo rol", allowedRoles);
